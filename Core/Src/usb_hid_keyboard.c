@@ -44,17 +44,23 @@ typedef struct
 	uint8_t KEYCODE6;
 } keyboardHID;
 
+#define KEY_1 0
+#define KEY_2 1
+#define KEY_3 2
+#define KEY_4 3
+#define KEY_R 4
+
 ///////////////////////////////////////////////////////////////////////////////
 // Global Variables
 ///////////////////////////////////////////////////////////////////////////////
 
 GPIOKEY keys[NUM_KEYS] =
 {
-	{  SW_1_GPIO_Port,   SW_1_Pin, GPIO_PIN_SET, 0},
-	{  SW_2_GPIO_Port,   SW_2_Pin, GPIO_PIN_SET, 0},
-	{  SW_3_GPIO_Port,   SW_3_Pin, GPIO_PIN_SET, 0},
-	{  SW_4_GPIO_Port,   SW_4_Pin, GPIO_PIN_SET, 0},
-	{SW_TOG_GPIO_Port, SW_TOG_Pin, GPIO_PIN_SET, 0},
+	{  SW_1_GPIO_Port,   SW_1_Pin, GPIO_PIN_SET, 0},	// KEY_1
+	{  SW_2_GPIO_Port,   SW_2_Pin, GPIO_PIN_SET, 0},	// KEY_2
+	{  SW_3_GPIO_Port,   SW_3_Pin, GPIO_PIN_SET, 0},	// KEY_3
+	{  SW_4_GPIO_Port,   SW_4_Pin, GPIO_PIN_SET, 0},	// KEY_4
+	{SW_TOG_GPIO_Port, SW_TOG_Pin, GPIO_PIN_SET, 0},	// KEY_R
 };
 
 keyboardHID keyboardhid = {0,0,0,0,0,0,0,0};
@@ -76,7 +82,6 @@ void USB_Keyboard_SendChar(char ch);
 void USB_Keyboard_Scan()
 {
 	GPIO_PinState	state;
-	bool			changed = false;
 	uint16_t		newCount = 0;
 
 	for (int i = 0; i < NUM_KEYS; i++)
@@ -86,7 +91,6 @@ void USB_Keyboard_Scan()
 	    // Has the key state changed
 		if (state != keys[i].state)
 	    {
-			changed = true;
 			keys[i].count++;
 			keys[i].state = state;
 
@@ -95,23 +99,23 @@ void USB_Keyboard_Scan()
 			{
 				switch (i)
 				{
-				case 0:
+				case KEY_1:
 					USB_Keyboard_SendString("stuff");
 					break;
 
-				case 1:
+				case KEY_2:
 					USB_Keyboard_SendString("wibble");
 					break;
 
-				case 2:
+				case KEY_3:
+					USB_Keyboard_SendString("This is key four");
+					break;
+
+				case KEY_4:
 					USB_Keyboard_SendString("Hello World");
 					break;
 
-				case 3:
-					USB_Keyboard_SendString("Hello World");
-					break;
-
-				case 4:
+				case KEY_R:
 					USB_Keyboard_SendString("Rotary");
 					break;
 
@@ -135,10 +139,12 @@ void USB_Keyboard_Scan()
 			if (newCount - toggleCount > 20)
 			{
 				toggleDirection = TOGGLE_DIR_CLOCK;
+				USB_Keyboard_SendString("up");
 			}
 			else
 			{
 				toggleDirection = TOGGLE_DIR_ANTI;
+				USB_Keyboard_SendString("down");
 			}
 		}
 		else
@@ -146,20 +152,16 @@ void USB_Keyboard_Scan()
 			if (toggleCount - newCount > 20)
 			{
 				toggleDirection = TOGGLE_DIR_ANTI;
+				USB_Keyboard_SendString("down");
 			}
 			else
 			{
 				toggleDirection = TOGGLE_DIR_CLOCK;
+				USB_Keyboard_SendString("up");
 			}
 		}
 
 		toggleCount = newCount;
-		changed = true;
-	}
-
-	if (changed)
-	{
-		ScreenUpdate();
 	}
 }
 
